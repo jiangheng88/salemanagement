@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>销售管理后台 - 注册</title>
+
+    <style>
+
+
+        .msg {
+            font-size: 13px;
+        }
+
+        .onError {
+            color: red;
+        }
+
+        .onSuccess {
+            color: green;
+        }
+    </style>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/hplus/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/hplus/css/font-awesome.min.css}" rel="stylesheet">
+    <link th:href="@{/hplus/css/animate.min.css}" rel="stylesheet">
+    <link th:href="@{/hplus/css/style.min.css}" rel="stylesheet">
+    <script>if (window.top !== window.self) {
+        window.top.location = window.location;
+    }
+
+
+    </script>
+
+
+</head>
+
+<body class="gray-bg">
+
+<div class="middle-box text-center loginscreen   animated fadeInDown">
+    <div>
+        <h3>欢迎注册</h3>
+        <p>创建一个新账户</p>
+        <form class="m-t" role="form" th:action="@{doregister}" method="post" enctype="multipart/form-data"
+              id="registerForm">
+            <div class="form-group">
+                <div>
+                    <label for="id_adminImg"><img style="width:100px;height: 100px" id="admin_img" class="img-circle"
+                                                  th:src="@{/hplus/img/profile_small.jpg}"/></label>
+                    <input accept="**/*.*" type="file" name="file_adminImg" id="id_adminImg" style="display: none">
+                    <span class="help-block"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" name="adminName" id="adminName" placeholder="请输入用户名"
+                       onkeyup="lost()"   required="">
+            </div>
+            <div class="form-group">
+                <input type="password" id="adminPass" class="form-control" name="adminPass" placeholder="请输入密码"
+                       required="">
+
+            </div>
+            <div class="form-group">
+                <input type="password" id="repass" class="form-control" placeholder="请再次输入密码" required="">
+
+            </div>
+            <button id="rgbtn" type="submit" class="btn btn-primary block full-width m-b">注 册</button>
+
+            <p class="text-muted text-center">
+                <small>已经有账户了？</small>
+                <a th:href="@{/forward?page=index}">点此登录</a>
+            </p>
+        </form>
+    </div>
+</div>
+<script th:src="@{/hplus/js/jquery.min.js}"></script>
+<script th:src="@{/hplus/js/bootstrap.min.js}"></script>
+<script th:src="@{/hplus/js/plugins/iCheck/icheck.min.js}"></script>
+<script th:src="@{/hplus/js/plugins/sweetalert/sweetalert.min.js}"></script>
+
+
+<script>
+    $(document).ready(function () {
+        $(".i-checks").iCheck({checkboxClass: "icheckbox_square-green", radioClass: "iradio_square-green",})
+    });
+
+    // 找到头像的input标签绑定change事件
+    $("#id_adminImg").change(function () {
+        // 1. 创建一个读取文件的对象
+        var fileReader = new FileReader();
+        // 取到当前选中的头像文件
+        // console.log(this.files[0]);
+        // 读取你选中的那个文件
+        fileReader.readAsDataURL(this.files[0]);  // 读取文件是需要时间的
+        fileReader.onload = function () {
+            // 2. 等上一步读完文件之后才 把图片加载到img标签中
+            $("#admin_img").attr("src", fileReader.result);
+        };
+    });
+
+    //ajax查询
+
+    var flag = 0;
+    function lost(){
+        
+        var datas = $("#registerForm").serialize();//序列化表单的值，把输入的内容用&符号连接起来name=xxx&paw=xxx，用于ajax向后台发送数据
+        //这个元素是jquery对象，需要转为dom对象，使用数组下标的方法.也可以使用 alert($("#name").val());
+        $.ajax({
+            url: "listAdmin",
+            type:"post",
+            data:datas,
+            dataType:"json",
+           
+            success: function(data, textStatus){
+                console.log(data)
+                $.each(data, function (index, item) {
+                    console.log(item.adminName);
+                    if (item.adminName == $("#adminName").val()){
+
+                        alert("用户名已存在，请更换用户名");
+                        $('#registerForm')[0].reset();
+                    }
+                })
+
+            },
+            error:function(XMLHttpRequest, textStatus, errorThrown){
+                alert(textStatus);
+            }
+        });
+
+    }
+    
+
+    //为表单的必填文本框添加提示信息（选择form中的所有后代input元素）
+    $("form :input.required").each(function () {
+        //通过jquery api：$("HTML字符串") 创建jquery对象
+        var $required = $("<strong class='high'>*</strong>");
+        //添加到this对象的父级对象下
+        $(this).parent().append($required);
+    });
+
+    //为表单元素添加失去焦点事件
+    $("form :input").blur(function () {
+        $("#rgbtn").removeAttr("disabled");
+        var $parent = $(this).parent();
+        $parent.find(".msg").remove(); //删除以前的提醒元素（find()：查找匹配元素集中元素的所有匹配元素）
+        //验证姓名
+        if ($(this).is("#adminName")) {
+            var nameVal = $.trim(this.value); //原生js去空格方式：this.replace(/(^\s*)|(\s*$)/g, "")
+            var regName = /[~#^$@%&!*()<>:;'"{}【】  ]/;
+            if (nameVal == "" || nameVal.length < 5 || regName.test(nameVal)) {
+                var errorMsg = " 姓名非空，长度6位以上，不包含特殊字符！";
+                //class='msg onError' 中间的空格是层叠样式的格式
+                $parent.append("<span class='msg onError'>" + errorMsg + "</span>");
+                flag1 = false;
+            } else {
+                var okMsg = " 输入正确";
+                $parent.find(".high").remove();
+                $parent.append("<span class='msg onSuccess'>" + okMsg + "</span>");
+            }
+        }
+        //验证密码
+
+        if ($(this).is("#adminPass")) {
+            var passVal = $.trim(this.value); //原生js去空格方式：this.replace(/(^\s*)|(\s*$)/g, "")
+            var regName = /[~#^$@%&!*()<>:;'"{}【】  ]/;
+            if (passVal == "" || passVal.length < 5 || regName.test(passVal)) {
+                var errorMsg = " 密码非空，长度6位以上，不包含特殊字符！";
+                //class='msg onError' 中间的空格是层叠样式的格式
+                $parent.append("<span class='msg onError'>" + errorMsg + "</span>");
+                flag2 = false;
+            } else {
+                var okMsg = " 输入正确";
+                $parent.find(".high").remove();
+                $parent.append("<span class='msg onSuccess'>" + okMsg + "</span>");
+            }
+        }
+        //密码确认验证
+
+        if ($(this).is("#repass")) {
+            $(this).blur(function () {
+                if ($(this).val() != $("#adminPass").val()) {
+                    var errorMsg = " 两次密码输入不一样，请重新输入！";
+                    $parent.append("<span class='msg onError'>" + errorMsg + "</span>");
+                    flag3 = false;
+                } else {
+                    var okMsg = " 输入正确";
+                    $parent.find(".high").remove();
+                    $parent.append("<span class='msg onSuccess'>" + okMsg + "</span>");
+                }
+            })
+        }
+    });
+
+
+    $("#rgbtn").click(function () {
+        //trigger 事件执行完后，浏览器会为submit按钮获得焦点
+        $("form .required:input").trigger("blur");
+        var numError = $("form .onError").length;
+        if (numError) {
+            $("#rgbtn").attr("disabled", true);
+            $('#registerForm')[0].reset();
+            alert("注册失败，请重新输入！");
+
+            return false;
+
+        }
+        alert("注册成功！");
+    });
+
+
+</script>
+
+</body>
+
+</html>
