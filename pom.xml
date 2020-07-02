@@ -26,7 +26,7 @@
         <beanutils.version>1.9.4</beanutils.version>
 
         <!--mysql的版本-->
-        <mysql.version>5.1.47</mysql.version>
+        <mysql.version>8.0.16</mysql.version>
         <!--mybatis-spring-boot的启动版本号-->
         <mybatisboot.version>2.1.0</mybatisboot.version>
     </properties>
